@@ -1,7 +1,8 @@
 import cv2
+import numpy as np
 
 # Read image
-img = cv2.imread("banana/dum.jpg")
+img = cv2.imread("img11.jpg")
 cv2.imshow('Frame',img)
 
 # Convert to hsv
@@ -25,7 +26,7 @@ print("Yellow",count_yellow)
 brown1 = cv2.inRange(hsv, (0,100,20), (17,255,255))
 brown2 = cv2.inRange(hsv, (170,100,20), (180,255,255))
 mask_brown = cv2.bitwise_or(brown1, brown2)
-# cv2.imshow('Brown mask', mask_brown)
+
 count_brown = 0
 for br in mask_brown:
     count_brown = count_brown + list(br).count(255)
@@ -33,9 +34,15 @@ print("Brown",count_brown)
 
 # Final Mask
 mask_final = mask_green + mask_yellow + mask_brown
-# cv2.imshow('mask',mask_final)
-result = cv2.bitwise_and(img,img, mask=mask_final)
-cv2.imshow('result',result)
+
+
+res = cv2.bitwise_and(img,img, mask=mask_final)
+contours, hierarchy = cv2.findContours(mask_final,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+area = [cv2.contourArea(x) for x in contours]
+max_index = np.argmax(area)
+maxcontour = contours[max_index]
+cv2.drawContours(img,[maxcontour],-1,(0,255,0),10)
+cv2.imshow('Frame1',img)
 
 # Calculate the total area
 total_count = count_green + count_yellow + count_brown
@@ -50,13 +57,13 @@ print(ypercent)
 print(brpercent)
 
 # Conditions for Banana fruit scaling
-if gpercent > 0.80:
+if gpercent > 0.75:
     print('Raw')
 elif brpercent < 0.75 and ypercent < 0.8:
     print('Very Ripe')
 elif ypercent > 0.9:
     print('Ripe')
-elif brpercent > 0.75:
+elif brpercent > 0.8:
     print('Fully Ripe')
 else:
     print('Unripe')
